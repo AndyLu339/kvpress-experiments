@@ -12,16 +12,16 @@ from kvpress.query_agnostic.data import MODEL_ID, MODEL_REVISION, file_hash
 SNAPSHOT_MANIFEST = "experiment_snapshot.json"
 
 
-def verify_snapshot(directory: Path) -> dict:
+def verify_snapshot(directory: Path, require_weights: bool = True) -> dict:
     manifest = json.loads((directory / SNAPSHOT_MANIFEST).read_text())
     if manifest.get("model_id") != MODEL_ID or manifest.get("model_revision") != MODEL_REVISION:
         raise ValueError("Local snapshot does not identify the frozen target checkpoint.")
-    if not manifest.get("complete_weights"):
+    if require_weights and not manifest.get("complete_weights"):
         raise ValueError("Local snapshot contains only tokenizer/config files; download the weights first.")
     for name, expected in manifest["files"].items():
         if file_hash(directory / name) != expected:
             raise ValueError(f"Local snapshot file hash mismatch: {name}")
-    if not any(name.endswith(".safetensors") for name in manifest["files"]):
+    if require_weights and not any(name.endswith(".safetensors") for name in manifest["files"]):
         raise ValueError("Snapshot manifest contains no model weights.")
     return manifest
 

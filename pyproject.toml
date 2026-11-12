@@ -26,6 +26,7 @@ dependencies = [
 [project.optional-dependencies]
 query-agnostic = [
     "transformers==4.57.6",
+    "scipy>=1.13.1,<2",
 ]
 query-agnostic-eval = [
     "rouge==1.0.1",

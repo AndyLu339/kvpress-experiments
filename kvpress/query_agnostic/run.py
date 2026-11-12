@@ -21,6 +21,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from kvpress.query_agnostic import ExperimentConfig, QueryAgnosticRuntime
 from kvpress.query_agnostic.artifacts import artifact_metadata, load_filters, load_gates, load_hm
 from kvpress.query_agnostic.data import (
+    KV_BUDGETS,
     LIMITS,
     MODEL_ID,
     MODEL_REVISION,
@@ -77,7 +78,7 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--dataset-dir", type=Path, required=True)
     cli.add_argument("--output", type=Path, required=True, help="One directory per complete method/budget/config.")
     cli.add_argument("--method", choices=METHODS, default="keydiff")
-    cli.add_argument("--budget", type=int, choices=(4096, 8192, 16384), default=8192)
+    cli.add_argument("--budget", type=int, choices=KV_BUDGETS, default=8192)
     cli.add_argument("--allocation", choices=("hm", "uniform"), default="hm")
     cli.add_argument("--hm-profile", type=Path)
     cli.add_argument("--filters", type=Path)

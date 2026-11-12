@@ -81,6 +81,7 @@ class OnlineScorer:
         probes: int = 64,
         sketch_dimension: int = 48,
         ridge: float = 1e-2,
+        ea_epsilon: float = 1e-2,
     ):
         if method not in METHODS:
             raise ValueError(f"Unknown method {method!r}; expected one of {METHODS}.")
@@ -93,6 +94,9 @@ class OnlineScorer:
         self.body_start, self.body_sink = 0, 4
         self.history_capacity, self.probe_count = history_capacity, probes
         self.sketch_dimension, self.ridge = sketch_dimension, ridge
+        if ea_epsilon < 0:
+            raise ValueError("EA epsilon cannot be negative.")
+        self.ea_epsilon = ea_epsilon
         if method == "qfilters" and filters is None:
             raise ValueError("qfilters requires checkpoint-specific calibrated filters.")
         if method == "fastkvzip" and (gates is None or len(gates) != layers):
@@ -196,7 +200,7 @@ class OnlineScorer:
         # Match ExpectedAttentionPress: protected prefix/sinks are outside the softmax domain.
         valid = cache.positions >= self.body_start + self.body_sink
         logits[:, ~valid] = -float("inf")
-        scores = logits.softmax(-1).mean(0) * cache.values.float().norm(dim=-1)
+        scores = (logits.softmax(-1).mean(0) + self.ea_epsilon) * cache.values.float().norm(dim=-1)
         return scores.masked_fill(~valid, 0)
 
     @property

@@ -12,6 +12,8 @@ import numpy as np
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct-1M"
 MODEL_REVISION = "e28526f7bb80e2a9c8af03b831a9af3812f18fba"
 DATA_REVISION = "a079be919d3131822c202180ffd4dc322968de45"
+REFERENCE_CONTEXT_LENGTH = 131072
+KV_BUDGETS = (4096, 8192, 16384, 32768)
 TASKS = ("scbench_vt", "scbench_repoqa", "scbench_qa_eng", "scbench_choice_eng", "scbench_summary")
 LIMITS = dict(zip(TASKS, (96, 512, 96, 96, 256)))
 INSTRUCTIONS = {

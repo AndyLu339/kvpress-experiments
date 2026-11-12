@@ -32,6 +32,7 @@ class ExperimentConfig:
     scoring_probes: int = 64
     sketch_dimension: int = 48
     ridge: float = 1e-2
+    ea_epsilon: float = 1e-2
     diagnostics: bool = False
 
     def __post_init__(self):
@@ -56,6 +57,7 @@ class QueryAgnosticRuntime:
         shares: Optional[np.ndarray] = None,
         filters: Optional[torch.Tensor] = None,
         gates=None,
+        observer=None,
     ):
         if not isinstance(model, Qwen2ForCausalLM):
             raise ValueError("This experimental runtime currently supports Qwen2ForCausalLM only.")
@@ -65,6 +67,7 @@ class QueryAgnosticRuntime:
         if len(devices) != 1 or next(iter(devices)).type == "meta":
             raise ValueError("Use one fully loaded model on one device; CPU/disk offload is not supported.")
         self.model, self.config = model, config
+        self.observer = observer
         self.device = next(iter(devices))
         self.layers = model.config.num_hidden_layers
         self.kv_heads = model.config.num_key_value_heads
@@ -92,6 +95,7 @@ class QueryAgnosticRuntime:
             probes=config.scoring_probes,
             sketch_dimension=config.sketch_dimension,
             ridge=config.ridge,
+            ea_epsilon=config.ea_epsilon,
         )
         self._original_forwards: list = []
         self._active = False
@@ -274,6 +278,8 @@ class QueryAgnosticRuntime:
             else:
                 candidate = new if old is None else old.append(new)
             candidates.append(candidate)
+        if self.observer is not None:
+            self.observer(module, hidden_states, queries, candidates, self.positions, self.phase)
         output = grouped_attention(queries, candidates, self.positions, self.config.backend)
         output = module.o_proj(output.unsqueeze(0))
         if is_question:
