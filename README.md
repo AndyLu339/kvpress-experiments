@@ -12,6 +12,12 @@
 
 Deploying long-context LLMs is costly due to the linear growth of the key-value (KV) cache in transformer models. For example, handling 1M tokens with Llama 3.1-70B in float16 requires up to 330GB of memory. kvpress implements multiple KV cache compression methods and benchmarks using 🤗 transformers, aiming to simplify the development of new methods for researchers and developers in this field.
 
+The experimental [query-agnostic chunked runner](kvpress/query_agnostic/README.md) implements true
+chunked Qwen2 prefill, compact variable-length KV heads, fixed global head budgets, and independent
+question branches. It includes Full-KV, EA-once, KeyDiff, leverage, Q-Filters, Fast KVzip scoring,
+ProbeMean/ProbeMax, and fixed random priorities. Its model-specific calibrated artifacts are supplied
+explicitly; it does not use the standard press pipeline.
+
 ## Installation
 
 ```bash
